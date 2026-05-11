@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>未知號碼</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  }
+
+  .phone {
+    width: 375px;
+    height: 720px;
+    background: #000;
+    border-radius: 48px;
+    border: 1px solid #333;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .status-bar {
+    background: #000;
+    padding: 14px 24px 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #fff;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .header {
+    background: #1c1c1e;
+    padding: 10px 16px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 0.5px solid #2c2c2e;
+    flex-shrink: 0;
+  }
+
+  .back {
+    color: #0a84ff;
+    font-size: 17px;
+    cursor: pointer;
+  }
+
+  .contact-info {
+    flex: 1;
+    text-align: center;
+  }
+
+  .contact-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #3a3a3c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #8e8e93;
+  }
+
+  .contact-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .contact-status {
+    font-size: 11px;
+    color: #8e8e93;
+    margin-top: 1px;
+  }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #000;
+  }
+
+  .messages::-webkit-scrollbar { display: none; }
+
+  .msg {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 16px;
+    line-height: 1.4;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.them {
+    background: #1c1c1e;
+    color: #fff;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+  }
+
+  .msg.me {
+    background: #0a84ff;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    align-self: flex-end;
+    font-size: 22px;
+    padding: 8px 14px;
+  }
+
+  .timestamp {
+    font-size: 11px;
+    color: #48484a;
+    text-align: center;
+    margin: 6px 0;
+  }
+
+  .typing {
+    display: flex;
+    gap: 4px;
+    padding: 12px 14px;
+    background: #1c1c1e;
+    border-radius: 18px;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+    align-items: center;
+  }
+
+  .typing span {
+    width: 6px;
+    height: 6px;
+    background: #8e8e93;
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+  }
+
+  .emoji-panel {
+    background: #1c1c1e;
+    border-top: 0.5px solid #2c2c2e;
+    padding: 12px 16px 28px;
+    flex-shrink: 0;
+  }
+
+  .emoji-hint {
+    font-size: 11px;
+    color: #48484a;
+    text-align: center;
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
+  }
+
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .emoji-btn {
+    background: #2c2c2e;
+    border: none;
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .emoji-btn:active {
+    background: #3a3a3c;
+    transform: scale(0.94);
+  }
+
+  .emoji-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .ended {
+    text-align: center;
+    padding: 20px;
+    color: #48484a;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .restart {
+    margin-top: 16px;
+    background: none;
+    border: 0.5px solid #3a3a3c;
+    color: #8e8e93;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>&#9679;&#9679;&#9679;</span>
+  </div>
+
+  <div class="header">
+    <span class="back">&#8249;</span>
+    <div class="contact-info">
+      <div class="contact-name">+886 912 *** ***</div>
+      <div class="contact-status">未儲存的號碼</div>
+    </div>
+    <div class="contact-avatar">?</div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="timestamp">今天 21:34</div>
+  </div>
+
+  <div class="emoji-panel" id="emojiPanel">
+    <div class="emoji-hint">你只能用這些回應</div>
+    <div class="emoji-grid" id="emojiGrid"></div>
+  </div>
+</div>
+
+<script>
+const EMOJIS = ['😊','😢','😐','❤️','👍','😳','🤷','😶','💬','🙏'];
+
+const SCRIPT = [
+  {
+    bot: "你好。不好意思打擾你。\n我有點說不清楚，\n你能幫我嗎？",
+    delay: 1200
+  },
+  {
+    bot: "我只是想知道……\n你覺得我現在怎麼了？",
+    delay: 1400,
+    waitForUser: true
+  },
+  null, // user response here
+  {
+    bot: null, // filled by misread logic
+    delay: 1600,
+    waitForUser: true
+  },
+  null,
+  {
+    bot: null,
+    delay: 1400,
+    waitForUser: true
+  },
+  null,
+  {
+    bot: null,
+    delay: 1200,
+    waitForUser: true
+  },
+  null,
+  {
+    bot: "……",
+    delay: 2000
+  },
+  {
+    bot: "我先忙一下，等等回你。",
+    delay: 1500,
+    final: true
+  }
+];
+
+const MISREADS = [
+  // 過度樂觀
+  (e) => [
+    `太好了，你也覺得我沒問題對嗎？\n我就知道你懂我。`,
+    `你傳 ${e} 是在說你支持我嗎？\n謝謝你，真的。`,
+    `所以你也覺得這樣沒關係？\n我就知道沒事的。`
+  ][Math.floor(Math.random()*3)],
+
+  // 字面誤讀
+  (e) => [
+    `你在笑我嗎？\n我不知道你為什麼這樣。`,
+    `${e} 是什麼意思？\n我看不懂你在說什麼。`,
+    `你傳這個……\n是覺得這很好笑嗎？`
+  ][Math.floor(Math.random()*3)],
+
+  // 過度推論
+  (e) => [
+    `所以你是支持我繼續說？\n還是覺得我在浪費你時間？`,
+    `你傳 ${e} 是什麼意思？\n你是真的在乎，還是只是隨便回？`,
+    `我需要你說清楚一點。\n${e} 到底是什麼感覺？`
+  ][Math.floor(Math.random()*3)]
+];
+
+let turn = 0;
+let waiting = false;
+let lastEmoji = '';
+let misreadCount = 0;
+
+const messagesEl = document.getElementById('messages');
+const emojiGrid = document.getElementById('emojiGrid');
+
+function addMsg(text, type, cb) {
+  if (type === 'them') {
+    const typing = document.createElement('div');
+    typing.className = 'typing';
+    typing.innerHTML = '<span></span><span></span><span></span>';
+    messagesEl.appendChild(typing);
+    scrollBottom();
+
+    setTimeout(() => {
+      typing.remove();
+      const msg = document.createElement('div');
+      msg.className = `msg ${type}`;
+      msg.style.whiteSpace = 'pre-line';
+      msg.textContent = text;
+      messagesEl.appendChild(msg);
+      scrollBottom();
+      if (cb) cb();
+    }, 1200);
+  } else {
+    const msg = document.createElement('div');
+    msg.className = `msg ${type}`;
+    msg.textContent = text;
+    messagesEl.appendChild(msg);
+    scrollBottom();
+    if (cb) cb();
+  }
+}
+
+function scrollBottom() {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function disableEmoji(val) {
+  document.querySelectorAll('.emoji-btn').forEach(b => b.disabled = val);
+}
+
+function getMisread(emoji) {
+  const logic = MISREADS[misreadCount % MISREADS.length];
+  misreadCount++;
+  return logic(emoji);
+}
+
+function runBot(text, delay, cb) {
+  disableEmoji(true);
+  setTimeout(() => {
+    addMsg(text, 'them', () => {
+      if (cb) cb();
+    });
+  }, delay);
+}
+
+function nextBotTurn() {
+  if (turn >= 3) {
+    // final sequence
+    disableEmoji(true);
+    setTimeout(() => {
+      addMsg('……', 'them', () => {
+        setTimeout(() => {
+          addMsg('我先忙一下，等等回你。', 'them', () => {
+            setTimeout(showEnd, 3000);
+          });
+        }, 1500);
+      });
+    }, 1000);
+    return;
+  }
+
+  const response = getMisread(lastEmoji);
+  runBot(response, 800, () => {
+    disableEmoji(false);
+    waiting = true;
+  });
+}
+
+function showEnd() {
+  const panel = document.getElementById('emojiPanel');
+  panel.innerHTML = `
+    <div class="ended">
+      對方已讀<br>
+      <span style="color:#3a3a3c">——</span><br>
+      <button class="restart" onclick="location.reload()">重新開始</button>
+    </div>
+  `;
+}
+
+function onEmojiClick(emoji) {
+  if (!waiting) return;
+  waiting = false;
+  lastEmoji = emoji;
+  turn++;
+  disableEmoji(true);
+
+  addMsg(emoji, 'me', () => {
+    setTimeout(nextBotTurn, 600);
+  });
+}
+
+// Build emoji buttons
+EMOJIS.forEach(e => {
+  const btn = document.createElement('button');
+  btn.className = 'emoji-btn';
+  btn.textContent = e;
+  btn.disabled = true;
+  btn.addEventListener('click', () => onEmojiClick(e));
+  emojiGrid.appendChild(btn);
+});
+
+// Start
+setTimeout(() => {
+  addMsg('你好。不好意思打擾你。\n我有點說不清楚，\n你能幫我嗎？', 'them', () => {
+    setTimeout(() => {
+      addMsg('我只是想知道……\n你覺得我現在怎麼了？', 'them', () => {
+        disableEmoji(false);
+        waiting = true;
+      });
+    }, 1800);
+  });
+}, 800);
+</script>
+</body>
+</html>
